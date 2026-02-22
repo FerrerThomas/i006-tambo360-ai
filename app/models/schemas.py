@@ -13,7 +13,7 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     """Chat completion request model."""
-    model: str = Field(default="openai/gpt-3.5-turbo", description="AI model to use")
+    model: str = Field(default="arcee-ai/trinity-large-preview:free", description="AI model to use")
     messages: List[ChatMessage] = Field(..., description="List of chat messages")
     max_tokens: Optional[int] = Field(default=1000, ge=1, le=4096, description="Maximum tokens to generate")
     temperature: Optional[float] = Field(default=0.7, ge=0.0, le=2.0, description="Sampling temperature")
@@ -27,7 +27,7 @@ class ChatResponse(BaseModel):
     created: int = Field(..., description="Creation timestamp")
     model: str = Field(..., description="Model used")
     choices: List[Dict[str, Any]] = Field(..., description="Response choices")
-    usage: Optional[Dict[str, int]] = Field(default=None, description="Token usage information")
+    usage: Optional[Dict[str, Any]] = Field(default=None, description="Token usage information")
 
 
 class ModelInfo(BaseModel):
