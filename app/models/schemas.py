@@ -59,3 +59,75 @@ class RootResponse(BaseModel):
     version: str = Field(..., description="Application version")
     docs: str = Field(..., description="Documentation URL")
     health: str = Field(..., description="Health check URL")
+
+
+# ---------------------------------------------------------------------------
+# TamboEngine — Schemas de entrada (alineados con Prisma del backend principal)
+# ---------------------------------------------------------------------------
+
+class MermaInput(BaseModel):
+    """Represents a waste/loss record within a production lot."""
+    descripcion: str = Field(..., description="Descripción de la merma")
+    cantidad: float = Field(..., description="Cantidad de merma")
+    unidad: str = Field(..., description="Unidad: 'kg' o 'litros'")
+
+
+class CostoDirectoInput(BaseModel):
+    """Represents a direct cost associated with a production lot."""
+    concepto: str = Field(..., description="Concepto del costo")
+    monto: float = Field(..., description="Monto del costo")
+    moneda: str = Field(..., description="Moneda: 'USD', 'EUR' o 'ARS'")
+
+
+class LoteInput(BaseModel):
+    """Represents a production lot from the main backend."""
+    idLote: str = Field(..., description="ID del lote (UUID del backend principal)")
+    fechaProduccion: str = Field(..., description="Fecha de producción (ISO 8601)")
+    producto: str = Field(..., description="Nombre del producto")
+    categoria: str = Field(..., description="Categoría: 'quesos' o 'leches'")
+    cantidad: float = Field(..., description="Cantidad producida")
+    unidad: str = Field(..., description="Unidad: 'kg' o 'litros'")
+    mermas: List[MermaInput] = Field(default=[], description="Mermas del lote")
+    costosDirectos: List[CostoDirectoInput] = Field(default=[], description="Costos directos del lote")
+
+
+class TamboAnalysisInput(BaseModel):
+    """Input payload sent by the main backend to trigger an AI analysis."""
+    idEstablecimiento: str = Field(..., description="ID del establecimiento")
+    nombreEstablecimiento: str = Field(..., description="Nombre del establecimiento")
+    periodo: str = Field(..., description="Período analizado, ej: 'Enero 2025'")
+    lotes: List[LoteInput] = Field(..., min_length=1, description="Lotes de producción a analizar (mínimo 1)")
+
+
+# ---------------------------------------------------------------------------
+# TamboEngine — Schemas de salida (contrato de respuesta de la IA)
+# ---------------------------------------------------------------------------
+
+class DesvioDetectado(BaseModel):
+    """Represents a single productive deviation detected by the AI."""
+    indicador: str = Field(..., description="Indicador afectado, ej: 'Merma de queso'")
+    descripcion: str = Field(..., description="Explicación del desvío generada por la IA")
+    nivel: str = Field(..., description="Nivel de severidad: 'bajo', 'medio' o 'alto'")
+
+
+class TamboAnalysisOutput(BaseModel):
+    """Structured output returned by TamboEngine after AI analysis."""
+    idEstablecimiento: str = Field(..., description="ID del establecimiento analizado")
+    periodo: str = Field(..., description="Período analizado")
+    estado_general: str = Field(..., description="Estado general: 'normal', 'alerta' o 'critico'")
+    resumen_ejecutivo: str = Field(..., description="Resumen ejecutivo del análisis")
+    desvios: List[DesvioDetectado] = Field(default=[], description="Lista de desvíos detectados")
+    recomendaciones: List[str] = Field(default=[], description="Recomendaciones generadas por la IA")
+
+
+class AlertaResponse(BaseModel):
+    """Alerta stored in DB and returned by GET /alertas endpoint (HU4)."""
+    id: str = Field(..., description="ID único de la alerta")
+    idEstablecimiento: str = Field(..., description="ID del establecimiento")
+    periodo: str = Field(..., description="Período analizado")
+    estado_general: str = Field(..., description="Estado general")
+    resumen_ejecutivo: str = Field(..., description="Resumen ejecutivo")
+    desvios: List[DesvioDetectado] = Field(default=[], description="Desvíos detectados")
+    recomendaciones: List[str] = Field(default=[], description="Recomendaciones")
+    creado_en: datetime = Field(..., description="Fecha y hora del análisis")
+

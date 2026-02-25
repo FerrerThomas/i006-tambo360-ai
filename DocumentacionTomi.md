@@ -205,3 +205,35 @@ TamboEngine.analyze()
 TamboAnalysisOutput (JSON validado)
 ```
 
+---
+
+## 🌿 Rama: `2-revisión-y-adaptación-de-los-schema-pydantic-existentes`
+
+**Objetivo:** Preparar la capa de datos del servicio de IA para el módulo TamboEngine.
+
+### ¿Qué se implementó?
+
+**`requirements.txt`** — Se agregaron las dependencias de base de datos:
+- `sqlalchemy==2.0.23` → ORM para interactuar con la BD
+- `aiosqlite==0.19.0` → Driver SQLite asíncrono (compatible con FastAPI async)
+
+**`app/database.py`** *(archivo nuevo)* — Configura el motor de base de datos SQLite asíncrono. Incluye:
+- `init_db()`: crea las tablas al iniciar la app
+- `get_db()`: dependencia de FastAPI que provee una sesión de BD por request
+
+**`app/models/db_models.py`** *(archivo nuevo)* — Define la tabla `alertas` en la base de datos con SQLAlchemy. Guarda el resultado de cada análisis de IA:  
+`id` · `id_establecimiento` · `periodo` · `estado_general` · `resumen_ejecutivo` · `desvios_json` · `recomendaciones_json` · `creado_en`
+
+**`app/models/schemas.py`** — Se agregaron los schemas Pydantic de TamboEngine:
+
+| Schema | Tipo | Para qué |
+|---|---|---|
+| `MermaInput` | Input | Una merma dentro de un lote |
+| `CostoDirectoInput` | Input | Un costo directo dentro de un lote |
+| `LoteInput` | Input | Un lote de producción del backend principal |
+| `TamboAnalysisInput` | Input | El payload completo que envía el backend para analizar |
+| `DesvioDetectado` | Output | Un desvío productivo detectado por la IA |
+| `TamboAnalysisOutput` | Output | Respuesta completa del análisis de IA |
+| `AlertaResponse` | Output | Lo que devuelve el endpoint GET /alertas |
+
+> Los schemas de input están **alineados con el schema Prisma del backend principal** (entidades `LoteProduccion`, `Merma`, `CostosDirecto`).
