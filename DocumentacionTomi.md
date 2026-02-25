@@ -14,10 +14,37 @@ Este servicio es el **cerebro de IA** del sistema Tambo360. Se encarga de analiz
 - Tiene su propia base de datos para guardar resultados.
 
 ```
-Frontend → Backend Principal → [este servicio IA] → OpenRouter (LLM)
-                                       ↓
-                               Respuesta validada (JSON)
+Usuario → Frontend (SPA)
+               │
+               ▼
+      Backend Principal (Next.js + Prisma + PostgreSQL)
+               │  POST /api/v1/tambo/analyze
+               ▼
+      [ESTE SERVICIO — Python + FastAPI]   ←→  Su propia BD
+               │
+               ▼
+      OpenRouter → Modelo de IA (LLM)
+               │
+               ▼
+      Respuesta JSON validada (análisis de producción)
 ```
+
+---
+
+## 🗃️ Modelo de datos del backend principal
+
+El backend principal tiene estas entidades en PostgreSQL (Prisma). Esto es lo que puede enviarnos para analizar:
+
+| Entidad | Para qué |   
+|---|---|
+| `Usuario` | El productor dueño de los establecimientos |
+| `Establecimiento` | El tambo / planta productiva del usuario |
+| `Producto` | Lo que se produce: quesos o leches |
+| `LoteProduccion` | Un lote de producción: cantidad, fecha, producto |
+| `Merma` | Pérdida dentro de un lote (ej: corte defectuoso) |
+| `CostosDirecto` | Costo asociado a un lote (ej: leche cruda, energía) |
+
+Nosotros **no accedemos directamente a esta BD**. El backend nos manda los datos ya consultados en el body del request.
 
 ---
 
