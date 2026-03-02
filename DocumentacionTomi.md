@@ -237,3 +237,30 @@ TamboAnalysisOutput (JSON validado)
 | `AlertaResponse` | Output | Lo que devuelve el endpoint GET /alertas |
 
 > Los schemas de input están **alineados con el schema Prisma del backend principal** (entidades `LoteProduccion`, `Merma`, `CostosDirecto`).
+
+---
+
+## 🌿 Rama: `3-implementación-guiada-de-un-endpoint-de-ia-simple`
+
+**Objetivo:** Implementar el servicio TamboEngine y los endpoints de análisis (HU3) y consulta de alertas (HU4).
+
+### ¿Qué se implementó?
+
+**`app/services/tambo_engine.py`** *(archivo nuevo)* — Servicio central de análisis con IA. Contiene 4 funciones:
+- `build_prompt(data)`: arma el system prompt con rol de analista + los datos reales de los lotes en texto legible + el contrato JSON que el modelo debe devolver
+- `call_model(messages)`: llama a OpenRouter via `ai_service` con `temperature=0.1` 
+- `validate_response(raw, data)`: limpia posible markdown del response, parsea el JSON y valida con Pydantic. Fuerza que los IDs coincidan con el input
+- `analyze(data)`: orquesta todo el flujo → build → call → validate → return
+
+**`app/api/v1/tambo.py`** *(archivo nuevo)* — Dos endpoints:
+
+| Método | URL | HU | Qué hace |
+|---|---|---|---|
+| `POST` | `/api/v1/tambo/analyze` | HU3 | Recibe datos, ejecuta el análisis con IA y guarda el resultado como alerta en SQLite |
+| `GET` | `/api/v1/tambo/alertas/{idEstablecimiento}` | HU4 | Devuelve todas las alertas guardadas para un establecimiento, ordenadas por fecha DESC |
+
+> Si la IA falla, el endpoint responde **HTTP 503** para no romper el backend principal.
+
+**`app/api/v1/__init__.py`** — Se registró `tambo.router` junto a los existentes (chat, health).
+
+**`main.py`** — Se agregó `await init_db()` en el startup para que la tabla `alertas` se cree automáticamente al arrancar.

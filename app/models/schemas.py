@@ -96,38 +96,40 @@ class TamboAnalysisInput(BaseModel):
     idEstablecimiento: str = Field(..., description="ID del establecimiento")
     nombreEstablecimiento: str = Field(..., description="Nombre del establecimiento")
     periodo: str = Field(..., description="Período analizado, ej: 'Enero 2025'")
-    lotes: List[LoteInput] = Field(..., min_length=1, description="Lotes de producción a analizar (mínimo 1)")
+    lotes: List[LoteInput] = Field(..., min_length=15, description="Lotes de producción a analizar (mínimo 15)")
 
 
 # ---------------------------------------------------------------------------
 # TamboEngine — Schemas de salida (contrato de respuesta de la IA)
 # ---------------------------------------------------------------------------
 
-class DesvioDetectado(BaseModel):
-    """Represents a single productive deviation detected by the AI."""
-    indicador: str = Field(..., description="Indicador afectado, ej: 'Merma de queso'")
-    descripcion: str = Field(..., description="Explicación del desvío generada por la IA")
+class AlertaLote(BaseModel):
+    """One alert for a single problematic lot detected by the AI."""
+    idLote: str = Field(..., description="ID del lote con desvío")
+    producto: str = Field(..., description="Nombre del producto del lote")
+    categoria: str = Field(..., description="Categoría: 'quesos' o 'leches'")
     nivel: str = Field(..., description="Nivel de severidad: 'bajo', 'medio' o 'alto'")
+    descripcion: str = Field(..., description="Descripción del desvío de merma detectado por la IA")
 
 
 class TamboAnalysisOutput(BaseModel):
     """Structured output returned by TamboEngine after AI analysis."""
     idEstablecimiento: str = Field(..., description="ID del establecimiento analizado")
     periodo: str = Field(..., description="Período analizado")
-    estado_general: str = Field(..., description="Estado general: 'normal', 'alerta' o 'critico'")
-    resumen_ejecutivo: str = Field(..., description="Resumen ejecutivo del análisis")
-    desvios: List[DesvioDetectado] = Field(default=[], description="Lista de desvíos detectados")
-    recomendaciones: List[str] = Field(default=[], description="Recomendaciones generadas por la IA")
+    alertas_detectadas: List[AlertaLote] = Field(
+        default=[],
+        description="Una alerta por cada lote problemático. Vacía si no hay desvíos."
+    )
 
 
 class AlertaResponse(BaseModel):
-    """Alerta stored in DB and returned by GET /alertas endpoint (HU4)."""
+    """Single lot alert stored in DB and returned by GET /alertas/{id} endpoint."""
     id: str = Field(..., description="ID único de la alerta")
     idEstablecimiento: str = Field(..., description="ID del establecimiento")
-    periodo: str = Field(..., description="Período analizado")
-    estado_general: str = Field(..., description="Estado general")
-    resumen_ejecutivo: str = Field(..., description="Resumen ejecutivo")
-    desvios: List[DesvioDetectado] = Field(default=[], description="Desvíos detectados")
-    recomendaciones: List[str] = Field(default=[], description="Recomendaciones")
+    idLote: str = Field(..., description="ID del lote con el desvío")
+    producto: str = Field(..., description="Producto del lote")
+    categoria: str = Field(..., description="Categoría del lote")
+    nivel: str = Field(..., description="Nivel de severidad")
+    descripcion: str = Field(..., description="Descripción del desvío")
     creado_en: datetime = Field(..., description="Fecha y hora del análisis")
 
