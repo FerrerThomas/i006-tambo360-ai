@@ -7,17 +7,17 @@ from app.database import Base
 
 
 class Alerta(Base):
-    """Stores the result of each TamboEngine AI analysis."""
+    """One alert per problematic lot detected by TamboEngine."""
 
     __tablename__ = "alertas"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     id_establecimiento = Column(String, nullable=False, index=True)
-    periodo = Column(String, nullable=False)
-    estado_general = Column(String, nullable=False)       # "normal" | "alerta" | "critico"
-    resumen_ejecutivo = Column(Text, nullable=False)
-    desvios_json = Column(Text, nullable=False)            # JSON serializado
-    recomendaciones_json = Column(Text, nullable=False)    # JSON serializado
+    id_lote = Column(String, nullable=False)
+    producto = Column(String, nullable=False)
+    categoria = Column(String, nullable=False)            # "quesos" | "leches"
+    nivel = Column(String, nullable=False)                # "bajo" | "medio" | "alto"
+    descripcion = Column(Text, nullable=False)             # desvío de merma explicado por la IA
     creado_en = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     __table_args__ = (
